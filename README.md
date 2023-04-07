@@ -2,6 +2,24 @@
 
 In our Hands-On section, we show how to deploy a deployable image file using Flyctl. Now we are going to deploy an application from source. In this _Getting Started_ article, we look at how to deploy a Python application on Fly. 
 
+## 自己进行的修改
+1. Dockerfile最后一句是 CMD ["python", "hellofly.py"]，需要通过命令执行py
+但是这里会报错，需要在hellofly.py中加入如下代码：
+
+```python
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+```
+
+如果不加，本地使用flask run没什么问题，但是在docker中启动时会报错
+
+2. 这里还需要指定 host='0.0.0.0'，否则默认只监听'127.0.0.1'，这样直接部署到docker中，也会导致无法接收请求
+
+3. port端口问题
+
+- 如果是本地docker启动，需要指定端口映射参数，docker run -P 8080:5000 xxx  即将内部5000端口映射到宿主机8080上
+- 如果部署到flyio中启动，则fly会读取fly.toml中的 internal_port = 5000，这个就是flask app需要监听的端口，而且fly会把这个端口映射到外部后变成http-80或者https-443端口(而且这里请求http会自动转发到https上，所以外部请求时，需要用https-443端口请求)
+
 ## _The Hellofly-python Application_
 
 You can get the code for the example from [the Fly-Examples Github repository](https://github.com/fly-examples/python-hellofly-flask). Just `git clone https://github.com/fly-examples/python-hellofly-flask` to get a local copy.
